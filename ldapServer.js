@@ -5,6 +5,8 @@ const { authenticateUser, findUserByDn } = require('./userAuthentication'); // A
 
 class LDAPServer {
     constructor() {
+        log('Initializing LDAP server', 'info');
+        log('Loading configuration', 'info');
         const config = loadConfig();
         this.ldapPort = config.port;
         this.ldapHostname = config.host;
@@ -14,10 +16,19 @@ class LDAPServer {
 
     start() {
         this.server.listen(this.ldapPort, this.ldapHostname, () => {
-            log(`LDAP for Plex server up at: ldap://${this.ldapHostname}:${this.ldapPort}`);
+            log(`LDAP for Plex server up at: ldap://${this.ldapHostname}:${this.ldapPort}`, 'info');
         });
 
         this.setupRoutes();
+    }
+
+    close() {
+        return new Promise((resolve) => {
+            this.server.close(() => {
+                log('LDAP server closed', 'info');
+                resolve();
+            });
+        });
     }
 
     setupRoutes() {
@@ -26,26 +37,35 @@ class LDAPServer {
     }
 
     async handleBind(req, res, next) {
-        const username = req.dn.toString(); // Extract username from DN
+        log('DN:', req.dn.toString(), 'info');
+        const dnString = req.dn.toString();
+        const matches = dnString.match(/cn=([^,]+)/i);
+        const cn = matches ? matches[1] : null;
         const password = req.credentials;
-        log(`Bind request for DN: ${username}`);
 
-        try {
-            const user = await authenticateUser(username, password);
-            if (user) {
-                res.end(); // Authentication success
-                return next();
-            } else {
-                return next(new ldap.InvalidCredentialsError());
+        if (cn) {
+            log(`Bind request for CN: ${cn}`, 'info');
+
+            try {
+                const user = await authenticateUser(cn, password);
+                if (user) {
+                    res.end(); // Authentication success
+                    return next();
+                } else {
+                    return next(new ldap.InvalidCredentialsError());
+                }
+            } catch (error) {
+                log(`Bind error: ${error.message}`);
+                return next(new ldap.OperationsError(error.message));
             }
-        } catch (error) {
-            log(`Bind error: ${error.message}`);
-            return next(new ldap.OperationsError(error.message));
+        } else {
+            log('Invalid DN format. CN not found.');
+            return next(new ldap.InvalidDnError());
         }
     }
 
     async handleSearch(req, res, next) {
-        log(`Search request for base object: ${req.dn.toString()}, scope: ${req.scope}, filter: ${req.filter.toString()}`);
+        log(`Search request for base object: ${req.dn.toString()}, scope: ${req.scope}, filter: ${req.filter.toString()}`, 'info');
 
         try {
             const results = await findUserByDn(req.dn.toString(), req.filter);

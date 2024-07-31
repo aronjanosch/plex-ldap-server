@@ -1,3 +1,5 @@
+// plexApiHandler.js
+
 const request = require('request');
 const { parseString } = require('xml2js');
 const { log } = require('./utils');
@@ -50,6 +52,40 @@ class PlexAPIHandler {
             }
         };
     }
+
+    async authenticateWithPlex(username, password) {
+        return new Promise((resolve, reject) => {
+            const authString = `${username}:${password}`;
+            const buffer = Buffer.from(authString, 'binary');
+            const authHeaderVal = `Basic ${buffer.toString('base64')}`;
+
+            const options = {
+                url: 'https://plex.tv/users/sign_in.json',
+                method: 'POST',
+                headers: {
+                    'X-Plex-Client-Identifier': 'PlexLDAPAuth',
+                    'X-Plex-Product': 'PlexLDAPAuth',
+                    'X-Plex-Version': '1.0',
+                    'Content-Type': 'application/json',
+                    'Authorization': authHeaderVal
+                }
+            };
+
+            request(options, (err, res, body) => {
+                if (!err && (res.statusCode === 200 || res.statusCode === 201)) {
+                    const plexUser = JSON.parse(body).user;
+                    log(`Authentication successful for user: ${username}`, 'info');
+                    resolve({ success: true, plexUser });
+                } else {
+                    log(`Authentication failed for user: ${username}. Error: ${err || body}`, 'error');
+                    resolve({ success: false });
+                }
+            });
+        });
+    }
 }
 
-module.exports = PlexAPIHandler;
+
+module.exports = {
+    PlexAPIHandler
+};
