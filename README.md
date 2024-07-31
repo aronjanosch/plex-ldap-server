@@ -17,12 +17,12 @@ This project implements an LDAP server that integrates with Plex Media Server to
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/aronjanosch/plex-ldap-server.git
+git clone https://github.com/aronjanosch/plex-ldap-js.git
 ```
 2. Change to the project directory:
 
 ```bash
-cd plex-ldap-server
+cd plex-ldap-js
 ```
 
 3. Install the dependencies:
@@ -53,13 +53,13 @@ npm start
 1. Build the Docker image:
 
 ```bash
-docker build -t plex-ldap-server .
+docker build -t plex-ldap-js .
 ```
 
 2. Run the Docker container:
 
 ```bash
-docker run -d -p 389:389 -v /path/to/config:/app/config plex-ldap-server
+docker run -d -p 389:389 -v /path/to/config:/app/config plex-ldap-js
 ```
 Make sure to mount the config directory containing your configuration files.
 
