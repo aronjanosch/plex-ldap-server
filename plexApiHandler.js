@@ -31,7 +31,7 @@ class PlexAPIHandler {
                         reject(new Error('Failed to parse Plex users'));
                         return;
                     }
-                    const users = result.MediaContainer.User.map(u => this.plexUserToLDAP(u.$));
+                    const users = result.MediaContainer.User.map(u => this.plexUserToLDAP(u));
                     resolve(users);
                 });
             });
@@ -39,16 +39,18 @@ class PlexAPIHandler {
     }
 
     plexUserToLDAP(pUser) {
+        const servers = pUser.Server ? pUser.Server.map((server) => server.$.name) : [];
         return {
-            dn: `uid=${pUser.id}, ou=users, o=plex.tv`,
+            dn: `uid=${pUser.$.id}, ou=users, o=plex.tv`,
             attributes: {
                 objectclass: ['Plex.tv User'],
-                cn: pUser.username,
-                uid: pUser.id,
-                email: pUser.email,
-                title: pUser.title,
-                thumb: pUser.thumb,
-                o: 'plex.tv'
+                cn: pUser.$.username,
+                uid: pUser.$.id,
+                email: pUser.$.email,
+                title: pUser.$.title,
+                thumb: pUser.$.thumb,
+                o: 'plex.tv',
+                server: servers
             }
         };
     }

@@ -1,7 +1,7 @@
 const ldap = require('ldapjs');
 const { loadConfig } = require('./configManager');
 const { log, handleLDAPError } = require('./utils');
-const { authenticateUser, findUserByDn } = require('./userAuthentication'); // Assuming user authentication methods are defined here
+const { authenticateUser, findEntryByDn } = require('./userAuthentication');
 
 class LDAPServer {
     constructor() {
@@ -68,7 +68,7 @@ class LDAPServer {
         log(`Search request for base object: ${req.dn.toString()}, scope: ${req.scope}, filter: ${req.filter.toString()}`, 'info');
 
         try {
-            const results = await findUserByDn(req.dn.toString(), req.filter);
+            const results = await findEntryByDn(req.dn.toString(), req.filter.toString(), req.scope);
             results.forEach(result => {
                 res.send({
                     dn: result.dn,

@@ -1,23 +1,20 @@
-# Use an official Node runtime as a parent image
+# Use an official Node.js runtime as the base image
 FROM node:14
 
 # Set the working directory in the container
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
 
-# Install app dependencies
-RUN npm install
+# Install dependencies
+RUN npm ci
 
-# Bundle app source
+# Copy the application code to the working directory
 COPY . .
 
-# Make port 2389 available to the world outside this container
-EXPOSE 2389
+# Expose the port on which your LDAP server listens (e.g., 389)
+EXPOSE 389
 
-# Define environment variable
-ENV NODE_ENV=development
-
-# Run the application
+# Specify the command to run your application
 CMD ["node", "index.js"]
