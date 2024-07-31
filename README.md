@@ -17,7 +17,7 @@ This project implements an LDAP server that integrates with Plex Media Server to
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/plex-ldap-server.git
+git clone https://github.com/aronjanosch/plex-ldap-server.git
 ```
 2. Change to the project directory:
 
