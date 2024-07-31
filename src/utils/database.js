@@ -1,11 +1,11 @@
 // database.js
 
 const sqlite3 = require('sqlite3').verbose();
-const { log } = require('./utils');
+const { log } = require('../utils/utils');
 
 class Database {
     constructor() {
-        this.db = new sqlite3.Database('./directory.db', (err) => {
+        this.db = new sqlite3.Database('../directory.db', (err) => {
             if (err) {
                 log(`Error connecting to the database: ${err.message}`, 'error');
             } else {

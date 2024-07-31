@@ -2,8 +2,8 @@
 
 const request = require('request');
 const { parseString } = require('xml2js');
-const { log } = require('./utils');
-const { loadConfig } = require('./configManager');
+const { log } = require('../utils/utils');
+const { loadConfig } = require('../configManager');
 
 class PlexAPIHandler {
     constructor() {

@@ -1,7 +1,7 @@
 const ldap = require('ldapjs');
 const { loadConfig } = require('./configManager');
-const { log, handleLDAPError } = require('./utils');
-const { authenticateUser, findEntryByDn } = require('./userAuthentication');
+const { log, handleLDAPError } = require('./utils/utils');
+const { authenticateUser, findEntryByDn } = require('./handlers/userAuthentication');
 
 class LDAPServer {
     constructor() {

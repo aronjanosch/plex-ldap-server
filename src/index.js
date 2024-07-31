@@ -2,7 +2,7 @@
 
 const LDAPServer = require('./ldapServer');
 const { initializeConfig } = require('./configManager');
-const { log } = require('./utils');
+const { log } = require('./utils/utils');
 
 function main() {
     // Initialize configuration

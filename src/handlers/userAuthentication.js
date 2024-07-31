@@ -2,9 +2,9 @@
 
 const ldap = require('ldapjs');
 const { PlexAPIHandler } = require('./plexApiHandler');
-const { log } = require('./utils');
-const Database = require('./database');
-const { loadConfig } = require('./configManager');
+const { log } = require('../utils/utils');
+const Database = require('../utils/database');
+const { loadConfig } = require('../configManager');
 
 
 const db = new Database();

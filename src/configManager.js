@@ -5,7 +5,7 @@ const path = require('path');
 
 const configFolder = path.join(__dirname, 'config');
 const optionsFile = path.join(configFolder, 'options.json');
-const envFile = path.join(__dirname, '.env');
+const envFile = path.join(configFolder, '.env');
 
 const defaults = {
     debug: false,

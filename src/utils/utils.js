@@ -1,5 +1,5 @@
 // utils.js
-const { loadConfig } = require('./configManager');
+const { loadConfig } = require('../configManager');
 
 const logLevels = {
     error: 0,

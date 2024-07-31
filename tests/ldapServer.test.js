@@ -1,8 +1,8 @@
 // tests/ldapServer.test.js
 
 const ldap = require('ldapjs');
-const LDAPServer = require('../ldapServer');
-const { loadConfig } = require('../configManager');
+const LDAPServer = require('../src/ldapServer');
+const { loadConfig } = require('../src/configManager');
 
 describe('LDAPServer Integration Tests', () => {
     let ldapServer;
