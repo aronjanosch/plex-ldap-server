@@ -39,15 +39,31 @@ class LDAPServer {
     async handleBind(req, res, next) {
         log('DN: ' + req.dn.toString(), 'info');
         const dnString = req.dn.toString();
-        const matches = dnString.match(/cn=([^,]+)/i);
-        const cn = matches ? matches[1] : null;
+        
+        let identifier; // Can be uid or cn
+        let identifierType; // Tracks whether it is uid or cn
+
+        // Try to match uid
+        let matches = dnString.match(/uid=([^,]+)/i);
+        if (matches) {
+            identifier = matches[1];
+            identifierType = 'uid';
+        } else {
+            // Try to match cn if uid not found
+            matches = dnString.match(/cn=([^,]+)/i);
+            if (matches) {
+                identifier = matches[1];
+                identifierType = 'cn';
+            }
+        }
+
         const password = req.credentials;
 
-        if (cn) {
-            log(`Bind request for CN: ${cn}`, 'info');
+        if (identifier) {
+            log(`Bind request for ${identifierType.toUpperCase()}: ${identifier}`, 'info');
 
             try {
-                const user = await authenticateUser(cn, password);
+                const user = await authenticateUser(identifier, password, identifierType);
                 if (user) {
                     res.end(); // Authentication success
                     return next();
@@ -59,7 +75,7 @@ class LDAPServer {
                 return next(new ldap.OperationsError(error.message));
             }
         } else {
-            log('Invalid DN format. CN not found.');
+            log('Invalid DN format. No valid identifier found.');
             return next(new ldap.InvalidDnError());
         }
     }
@@ -86,3 +102,9 @@ class LDAPServer {
 }
 
 module.exports = LDAPServer;
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+    log('Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+});

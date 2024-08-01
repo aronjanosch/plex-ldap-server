@@ -1,32 +1,29 @@
-// userAuthentication.js
-
 const ldap = require('ldapjs');
 const { PlexAPIHandler } = require('./plexApiHandler');
 const { log } = require('../utils/utils');
 const Database = require('../utils/database');
 const { loadConfig } = require('../configManager');
 
-
 const db = new Database();
 
-async function authenticateUser(username, password) {
+async function authenticateUser(identifier, password, identifierType) {
     const users = await loadUsersIfNeeded();
-    log(`Authenticating user: ${username}`, 'info');
-    const user = users.find((u) => u.attributes.cn === username);
+    log(`Authenticating user with ${identifierType.toUpperCase()}: ${identifier}`, 'info');
+    const user = users.find((u) => u.attributes[identifierType] === identifier);
 
     if (user) {
-        log(`User found in cache: ${username}`, 'info');
+        log(`User found in cache: ${identifier}`, 'info');
         const plexApiHandler = new PlexAPIHandler();
-        const authenticationResult = await plexApiHandler.authenticateWithPlex(username, password);
+        const authenticationResult = await plexApiHandler.authenticateWithPlex(user.attributes.cn, password);
         if (authenticationResult.success) {
-            log(`Authentication successful for user: ${username}`, 'info');
+            log(`Authentication successful for user: ${identifier}`, 'info');
             return authenticationResult.plexUser;
         } else {
-            log(`Authentication failed for user: ${username}. Invalid credentials.`, 'info');
+            log(`Authentication failed for user: ${identifier}. Invalid credentials.`, 'info');
             return null;
         }
     } else {
-        log(`User not found in cache: ${username}`, 'info');
+        log(`User not found in cache: ${identifier}`, 'info');
         return null;
     }
 }
@@ -125,6 +122,7 @@ async function findEntryByDn(dn, filterStr, scope) {
         attributes: entry.attributes
     }));
 }
+
 module.exports = {
     authenticateUser,
     findEntryByDn
