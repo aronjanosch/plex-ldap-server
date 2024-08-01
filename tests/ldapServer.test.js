@@ -74,42 +74,48 @@ describe('LDAPServer Integration Tests', () => {
 
     test('LDAP server processes search requests correctly with a specific user filter', (done) => {
         const baseDN = 'ou=users, o=plex.tv';
-        const username = 'elestea' || ''; // Adjust as per your test user
-        const filter = `(&(objectclass=Plex.tv User)(|(cn=${username})(mail=${username})(displayName=${username})))`;
-    
+        const username = 'elesteamail@gmail.com'; // Adjust as per your test user
+        const filter = `(&(objectClass=Plex.tv User)(|(cn=${username})(email=${username})(displayName=${username})))`;
+
         ldapClient.search(baseDN, {
             scope: 'sub',
             filter
         }, (err, res) => {
             expect(err).toBeNull();
-    
+
             let numEntries = 0;
             res.on('searchEntry', (entry) => {
                 numEntries++;
                 expect(entry).toBeDefined();
                 expect(Array.isArray(entry.attributes)).toBe(true);
-                
+
                 const cnAttribute = entry.attributes.find(attr => attr.type === 'cn');
-                expect(cnAttribute).toBeDefined();
-                expect(cnAttribute.values).toContain(username);
+                const emailAttribute = entry.attributes.find(attr => attr.type === 'email');
+                const displayNameAttribute = entry.attributes.find(attr => attr.type === 'displayName');
+
+                // Ensure either cn, email, or displayName contains the username
+                const matchedAttribute = [cnAttribute, emailAttribute, displayNameAttribute].find(attr => attr && attr.values.includes(username));
+                expect(matchedAttribute).toBeDefined();
 
                 console.log('Expected username:', username);
-                console.log('Returned username:', cnAttribute.values[0]);
+                if (matchedAttribute) {
+                    console.log('Returned value:', matchedAttribute.values[0]);
+                }
                 console.log('Entry attributes:', entry.attributes);
             });
-    
+
             res.on('error', (error) => {
                 expect(error).toBeUndefined();
                 done();
             });
-    
+
             res.on('end', () => {
                 expect(numEntries).toBe(1);
                 done();
             });
         });
     });
-    
+
     test('LDAP server processes search requests correctly with a specific group filter', (done) => {
         const baseDN = 'ou=users, o=plex.tv';
         const groupName = 'PlexMex'; // Make sure this group exists under "ou=users, o=plex.tv"

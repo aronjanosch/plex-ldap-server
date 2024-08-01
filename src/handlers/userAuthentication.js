@@ -83,7 +83,7 @@ async function loadUsersIfNeeded() {
     });
 }
 
-async function findEntryByDn(dn, filterStr, scope) {
+async function findEntryByDn(dn, filter, scope) {
     const entries = await loadUsersIfNeeded();
     log(`Finding entries under base DN: ${dn}`, 'info');
 
@@ -107,10 +107,9 @@ async function findEntryByDn(dn, filterStr, scope) {
                 dnMatch = normalizedEntryDn.endsWith(`,${normalizedDn}`);
         }
 
-        const filter = ldap.parseFilter(filterStr);
-        const attributeMatch = filter.matches(entry.attributes);
+        const filterMatch = filter.matches(entry.attributes);
 
-        return dnMatch && attributeMatch;
+        return dnMatch && filterMatch;
     });
 
     if (matchedEntries.length === 0 && scope === 'base') {

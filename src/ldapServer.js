@@ -84,7 +84,7 @@ class LDAPServer {
         log(`Search request for base object: ${req.dn.toString()}, scope: ${req.scope}, filter: ${req.filter.toString()}`, 'info');
 
         try {
-            const results = await findEntryByDn(req.dn.toString(), req.filter.toString(), req.scope);
+            const results = await findEntryByDn(req.dn.toString(), req.filter, req.scope);
             results.forEach(result => {
                 res.send({
                     dn: result.dn,
