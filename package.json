@@ -9,9 +9,9 @@
     "test": "jest"
   },
   "keywords": [],
-  "author": "",
+  "author": "Aron Wiederkehr",
   "license": "ISC",
-  "description": "",
+  "description": "This project implements an LDAP server that integrates with Plex Media Server to provide user authentication and group management.",
   "dependencies": {
     "dotenv": "^16.4.5",
     "ldapjs": "^3.0.7",
