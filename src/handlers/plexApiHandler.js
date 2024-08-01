@@ -46,7 +46,7 @@ class PlexAPIHandler {
                 objectclass: ['Plex.tv User'],
                 cn: pUser.$.username,
                 uid: pUser.$.id,
-                email: pUser.$.email,
+                mail: pUser.$.email,
                 title: pUser.$.title,
                 thumb: pUser.$.thumb,
                 o: 'plex.tv',

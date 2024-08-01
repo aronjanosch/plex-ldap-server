@@ -75,7 +75,7 @@ describe('LDAPServer Integration Tests', () => {
     test('LDAP server processes search requests correctly with a specific user filter', (done) => {
         const baseDN = 'ou=users, o=plex.tv';
         const username = 'elesteamail@gmail.com'; // Adjust as per your test user
-        const filter = `(&(objectClass=Plex.tv User)(|(cn=${username})(email=${username})(displayName=${username})))`;
+        const filter = `(&(objectClass=Plex.tv User)(|(cn=${username})(mail=${username})(displayName=${username})))`;
 
         ldapClient.search(baseDN, {
             scope: 'sub',
@@ -90,11 +90,11 @@ describe('LDAPServer Integration Tests', () => {
                 expect(Array.isArray(entry.attributes)).toBe(true);
 
                 const cnAttribute = entry.attributes.find(attr => attr.type === 'cn');
-                const emailAttribute = entry.attributes.find(attr => attr.type === 'email');
+                const mailAttribute = entry.attributes.find(attr => attr.type === 'mail');
                 const displayNameAttribute = entry.attributes.find(attr => attr.type === 'displayName');
 
-                // Ensure either cn, email, or displayName contains the username
-                const matchedAttribute = [cnAttribute, emailAttribute, displayNameAttribute].find(attr => attr && attr.values.includes(username));
+                // Ensure either cn, mail, or displayName contains the username
+                const matchedAttribute = [cnAttribute, mailAttribute, displayNameAttribute].find(attr => attr && attr.values.includes(username));
                 expect(matchedAttribute).toBeDefined();
 
                 console.log('Expected username:', username);

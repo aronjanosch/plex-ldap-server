@@ -1,3 +1,5 @@
+// userAuthentication.js
+
 const ldap = require('ldapjs');
 const { PlexAPIHandler } = require('./plexApiHandler');
 const { log } = require('../utils/utils');

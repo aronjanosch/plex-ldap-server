@@ -1,3 +1,5 @@
+//ldapServer.js
+
 const ldap = require('ldapjs');
 const { loadConfig } = require('./configManager');
 const { log, handleLDAPError } = require('./utils/utils');

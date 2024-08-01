@@ -1,3 +1,5 @@
+//configManager.js
+
 const { log } = require('console');
 const fs = require('fs');
 const dotenv = require('dotenv');
