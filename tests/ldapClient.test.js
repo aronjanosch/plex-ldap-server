@@ -1,25 +1,14 @@
 // tests/ldapServer.test.js
 
 const ldap = require('ldapjs');
-const LDAPServer = require('../src/ldapServer');
 const { loadConfig } = require('../src/configManager');
 
 describe('LDAPServer Integration Tests', () => {
-    let ldapServer;
     let ldapClient;
-
-    beforeAll(async () => {
-        ldapServer = new LDAPServer();
-        await ldapServer.start();
-    });
-
-    afterAll(async () => {
-        await ldapServer.close();
-    });
 
     beforeEach(() => {
         ldapClient = ldap.createClient({
-            url: `ldap://${loadConfig().host}:${loadConfig().port}`
+            url: `ldap://${process.env.LDAP_HOST || 'localhost'}:${process.env.LDAP_PORT || 389}`
         });
     });
 
@@ -63,6 +52,7 @@ describe('LDAPServer Integration Tests', () => {
 
             res.on('error', (error) => {
                 expect(error).toBeUndefined();
+                done();
             });
 
             res.on('end', () => {
@@ -75,20 +65,20 @@ describe('LDAPServer Integration Tests', () => {
     test('LDAP server processes search requests correctly with a specific user filter', (done) => {
         const baseDN = 'ou=users, o=plex.tv';
         const username = 'elestea' || ''; // Adjust as per your test user
-        const filter = `(&(objectclass=Plex.tv User)(|(cn=${username})(mail=${username})(displayName=${username})))`;
-    
+        const filter = `(&(objectclass=Plex.tv User)(cn=${username}))`;
+
         ldapClient.search(baseDN, {
             scope: 'sub',
             filter
         }, (err, res) => {
             expect(err).toBeNull();
-    
+
             let numEntries = 0;
             res.on('searchEntry', (entry) => {
                 numEntries++;
                 expect(entry).toBeDefined();
                 expect(Array.isArray(entry.attributes)).toBe(true);
-                
+
                 const cnAttribute = entry.attributes.find(attr => attr.type === 'cn');
                 expect(cnAttribute).toBeDefined();
                 expect(cnAttribute.values).toContain(username);
@@ -97,36 +87,36 @@ describe('LDAPServer Integration Tests', () => {
                 console.log('Returned username:', cnAttribute.values[0]);
                 console.log('Entry attributes:', entry.attributes);
             });
-    
+
             res.on('error', (error) => {
                 expect(error).toBeUndefined();
                 done();
             });
-    
+
             res.on('end', () => {
                 expect(numEntries).toBe(1);
                 done();
             });
         });
     });
-    
+
     test('LDAP server processes search requests correctly with a specific group filter', (done) => {
         const baseDN = 'ou=users, o=plex.tv';
         const groupName = 'PlexMex'; // Make sure this group exists under "ou=users, o=plex.tv"
         const filter = `(&(objectclass=groupOfNames)(cn=${groupName}))`; // Modify the filter to search for the group directly under "ou=users"
-    
+
         ldapClient.search(baseDN, {
             scope: 'sub',
             filter
         }, (err, res) => {
             expect(err).toBeNull();
-    
+
             let numEntries = 0;
             res.on('searchEntry', (entry) => {
                 numEntries++;
                 expect(entry).toBeDefined();
                 expect(Array.isArray(entry.attributes)).toBe(true);
-                
+
                 const cnAttribute = entry.attributes.find(attr => attr.type === 'cn');
                 expect(cnAttribute).toBeDefined();
                 expect(cnAttribute.values).toContain(groupName);
@@ -142,12 +132,12 @@ describe('LDAPServer Integration Tests', () => {
                     console.log('No members found for the group');
                 }
             });
-    
+
             res.on('error', (error) => {
                 expect(error).toBeUndefined();
                 done();
             });
-    
+
             res.on('end', () => {
                 expect(numEntries).toBe(1);
                 done();

@@ -9,7 +9,7 @@ const envFile = path.join(configFolder, '.env');
 
 const defaults = {
     debug: false,
-    port: 2389,
+    port: 389,
     host: '0.0.0.0',
     rootDN: 'ou=users, o=plex.tv',
     plexToken: '',

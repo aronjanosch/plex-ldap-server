@@ -1,0 +1,13 @@
+version: '3'
+services:
+  plex-ldap-server:
+    image: ghcr.io/aronjanosch/plex-ldap-server:latest
+    hostname: plex-ldap-server
+    container_name: plex-ldap-server
+    environment:
+      - PLEX_TOKEN=your-plex-token
+      - PLEX_MACHINE_ID=your-plex-machine-id
+      - PLEX_SERVER_NAME=your-plex-server-name
+    volumes:
+      - ./config:/app/config
+    restart: unless-stopped

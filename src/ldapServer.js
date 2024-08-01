@@ -37,7 +37,7 @@ class LDAPServer {
     }
 
     async handleBind(req, res, next) {
-        log('DN:', req.dn.toString(), 'info');
+        log('DN: ' + req.dn.toString(), 'info');
         const dnString = req.dn.toString();
         const matches = dnString.match(/cn=([^,]+)/i);
         const cn = matches ? matches[1] : null;
