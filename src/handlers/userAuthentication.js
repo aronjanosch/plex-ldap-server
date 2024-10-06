@@ -89,10 +89,12 @@ async function findEntryByDn(dn, filter, scope) {
     const entries = await loadUsersIfNeeded();
     log(`Finding entries under base DN: ${dn}`, 'info');
 
-    const normalizedDn = dn.replace(/\s*,\s*/g, ',');
+    // Normalize the input DN
+    const normalizedDn = dn.replace(/\s*,\s*/g, ',').toLowerCase();
 
     const matchedEntries = entries.filter((entry) => {
-        const normalizedEntryDn = entry.dn.replace(/\s*,\s*/g, ',');
+        // Normalize the entry DN for comparison
+        const normalizedEntryDn = entry.dn.replace(/\s*,\s*/g, ',').toLowerCase();
 
         let dnMatch;
         switch (scope) {
@@ -100,7 +102,8 @@ async function findEntryByDn(dn, filter, scope) {
                 dnMatch = normalizedEntryDn === normalizedDn;
                 break;
             case 'one':
-                dnMatch = normalizedEntryDn === normalizedDn || ldap.parseDN(normalizedEntryDn).parent().toString() === normalizedDn;
+                dnMatch = normalizedEntryDn === normalizedDn ||
+                    ldap.parseDN(normalizedEntryDn).parent().toString().toLowerCase() === normalizedDn;
                 break;
             case 'sub':
                 dnMatch = normalizedEntryDn === normalizedDn || normalizedEntryDn.endsWith(`,${normalizedDn}`);
@@ -109,12 +112,27 @@ async function findEntryByDn(dn, filter, scope) {
                 dnMatch = normalizedEntryDn.endsWith(`,${normalizedDn}`);
         }
 
-        const filterMatch = filter.matches(entry.attributes);
+        // Adjust filter matching for case-insensitivity in objectClass and other attributes
+        const filterMatch = filter.matches(
+            Object.keys(entry.attributes).reduce((acc, key) => {
+                acc[key.toLowerCase()] = entry.attributes[key];
+                return acc;
+            }, {})
+        );
+
+        // Log detailed information for debugging
+        if (!dnMatch) {
+            log(`DN mismatch: ${normalizedEntryDn} != ${normalizedDn}`, 'debug');
+        }
+        if (!filterMatch) {
+            log(`Filter did not match for entry: ${normalizedEntryDn}`, 'debug');
+        }
 
         return dnMatch && filterMatch;
     });
 
     if (matchedEntries.length === 0 && scope === 'base') {
+        log(`No entries found for DN: ${normalizedDn} with scope: base`, 'info');
         throw new ldap.NoSuchObjectError(dn);
     }
 
@@ -123,6 +141,7 @@ async function findEntryByDn(dn, filter, scope) {
         attributes: entry.attributes
     }));
 }
+
 
 module.exports = {
     authenticateUser,
