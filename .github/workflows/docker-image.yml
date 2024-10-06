@@ -32,37 +32,14 @@ jobs:
             sudo apt-get update && sudo apt-get install -y jq
           fi
 
-      - name: Extract and increment version
+      - name: Extract version from package.json
         id: vars
         run: |
           CURRENT_VERSION=$(jq -r '.version' package.json)
           echo "Current version: $CURRENT_VERSION"
 
-          # Split the version into its components
-          IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
-          MAJOR=${VERSION_PARTS[0]}
-          MINOR=${VERSION_PARTS[1]}
-          PATCH=${VERSION_PARTS[2]}
-
-          # Increment the patch version
-          PATCH=$((PATCH + 1))
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "New version: $NEW_VERSION"
-
-          # Update the version in package.json
-          jq ".version = \"$NEW_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
-
-          # Set the new version as an environment variable
-          echo "VERSION=$NEW_VERSION" >> $GITHUB_ENV
-
-      - name: Commit updated package.json
-        env:
-          VERSION: ${{ env.VERSION }}
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git commit -am "ci: Bump version to $VERSION [skip ci]"
-          git push origin HEAD:main
+          # Set the current version as an environment variable
+          echo "VERSION=$CURRENT_VERSION" >> $GITHUB_ENV
 
       - name: Build Docker image
         run: |
@@ -73,4 +50,3 @@ jobs:
         run: |
           IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/$(basename ${{ github.repository }})
           docker push $IMAGE_NAME:${{ env.VERSION }}
-          docker push $IMAGE_NAME:latest
