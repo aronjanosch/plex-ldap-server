@@ -56,6 +56,7 @@ function loadConfig() {
     config.plexToken = process.env.PLEX_TOKEN || config.plexToken;
     config.plexMachineID = process.env.PLEX_MACHINE_ID || config.plexMachineID;
     config.plexServerName = process.env.PLEX_SERVER_NAME || config.plexServerName;
+    config.logLevel = process.env.LOG_LEVEL || config.logLevel;
 
     return config;
 }

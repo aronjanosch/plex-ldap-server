@@ -45,7 +45,7 @@ describe('LDAPServer Integration Tests', () => {
         });
     });
 
-    test('LDAP server processes search requests correctly for users', (done) => {
+    test('LDAP server processes search requests correctly for all users', (done) => {
         const baseDN = 'ou=users, o=plex.tv';
         const filter = '(objectclass=Plex.tv User)';
 
@@ -59,6 +59,7 @@ describe('LDAPServer Integration Tests', () => {
             res.on('searchEntry', (entry) => {
                 numEntries++;
                 expect(entry).toBeDefined();
+                expect(Array.isArray(entry.attributes)).toBe(true);
             });
 
             res.on('error', (error) => {
@@ -66,7 +67,7 @@ describe('LDAPServer Integration Tests', () => {
             });
 
             res.on('end', () => {
-                expect(numEntries).toBeGreaterThan(0);
+                expect(numEntries).toBeGreaterThan(0); // At least one user must be present
                 done();
             });
         });
@@ -75,7 +76,7 @@ describe('LDAPServer Integration Tests', () => {
     test('LDAP server processes search requests correctly with a specific user filter', (done) => {
         const baseDN = 'ou=users, o=plex.tv';
         const username = 'elesteamail@gmail.com'; // Adjust as per your test user
-        const filter = `(&(objectClass=Plex.tv User)(|(cn=${username})(mail=${username})(displayName=${username})))`;
+        const filter = `(&(|(objectClass=Plex.tv User))(|(uid=${username})(mail=${username})(cn=${username})(displayName=${username})))`;
 
         ldapClient.search(baseDN, {
             scope: 'sub',
@@ -89,12 +90,12 @@ describe('LDAPServer Integration Tests', () => {
                 expect(entry).toBeDefined();
                 expect(Array.isArray(entry.attributes)).toBe(true);
 
-                const cnAttribute = entry.attributes.find(attr => attr.type === 'cn');
-                const mailAttribute = entry.attributes.find(attr => attr.type === 'mail');
-                const displayNameAttribute = entry.attributes.find(attr => attr.type === 'displayName');
+                const cnAttribute = entry.attributes.find(attr => attr.type.toLowerCase() === 'cn');
+                const mailAttribute = entry.attributes.find(attr => attr.type.toLowerCase() === 'mail');
+                const uidAttribute = entry.attributes.find(attr => attr.type.toLowerCase() === 'uid');
 
-                // Ensure either cn, mail, or displayName contains the username
-                const matchedAttribute = [cnAttribute, mailAttribute, displayNameAttribute].find(attr => attr && attr.values.includes(username));
+                // Ensure either cn, mail, or uid contains the username
+                const matchedAttribute = [cnAttribute, mailAttribute, uidAttribute].find(attr => attr && attr.values.includes(username));
                 expect(matchedAttribute).toBeDefined();
 
                 console.log('Expected username:', username);
@@ -110,7 +111,35 @@ describe('LDAPServer Integration Tests', () => {
             });
 
             res.on('end', () => {
-                expect(numEntries).toBe(1);
+                expect(numEntries).toBe(1); // Should match exactly one user
+                done();
+            });
+        });
+    });
+
+    test('LDAP server processes search requests correctly with a specific user DN (base search)', (done) => {
+        const baseDN = 'uid=137326771,ou=users,o=plex.tv'; // Replace with the actual test user DN
+        const filter = '(objectclass=Plex.tv User)';
+
+        ldapClient.search(baseDN, {
+            scope: 'base', // base search for the specific DN
+            filter
+        }, (err, res) => {
+            expect(err).toBeNull();
+
+            let numEntries = 0;
+            res.on('searchEntry', (entry) => {
+                numEntries++;
+                expect(entry).toBeDefined();
+                expect(Array.isArray(entry.attributes)).toBe(true);
+            });
+
+            res.on('error', (error) => {
+                expect(error).toBeUndefined();
+            });
+
+            res.on('end', () => {
+                expect(numEntries).toBe(1); // Expect exactly one entry to be returned
                 done();
             });
         });
@@ -119,21 +148,21 @@ describe('LDAPServer Integration Tests', () => {
     test('LDAP server processes search requests correctly with a specific group filter', (done) => {
         const baseDN = 'ou=users, o=plex.tv';
         const groupName = 'PlexMex'; // Make sure this group exists under "ou=users, o=plex.tv"
-        const filter = `(&(objectclass=groupOfNames)(cn=${groupName}))`; // Modify the filter to search for the group directly under "ou=users"
-    
+        const filter = `(&(objectclass=groupOfNames)(cn=${groupName}))`;
+
         ldapClient.search(baseDN, {
             scope: 'sub',
             filter
         }, (err, res) => {
             expect(err).toBeNull();
-    
+
             let numEntries = 0;
             res.on('searchEntry', (entry) => {
                 numEntries++;
                 expect(entry).toBeDefined();
                 expect(Array.isArray(entry.attributes)).toBe(true);
                 
-                const cnAttribute = entry.attributes.find(attr => attr.type === 'cn');
+                const cnAttribute = entry.attributes.find(attr => attr.type.toLowerCase() === 'cn');
                 expect(cnAttribute).toBeDefined();
                 expect(cnAttribute.values).toContain(groupName);
 
@@ -141,21 +170,21 @@ describe('LDAPServer Integration Tests', () => {
                 console.log('Returned group name:', cnAttribute.values[0]);
                 console.log('Entry attributes:', entry.attributes);
 
-                const membersAttribute = entry.attributes.find(attr => attr.type === 'member');
+                const membersAttribute = entry.attributes.find(attr => attr.type.toLowerCase() === 'member');
                 if (membersAttribute) {
                     console.log('Group members:', membersAttribute.values);
                 } else {
                     console.log('No members found for the group');
                 }
             });
-    
+
             res.on('error', (error) => {
                 expect(error).toBeUndefined();
                 done();
             });
-    
+
             res.on('end', () => {
-                expect(numEntries).toBe(1);
+                expect(numEntries).toBe(1); // Expect exactly one group to be found
                 done();
             });
         });

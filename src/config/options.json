@@ -1,9 +1,9 @@
 {
-    "debug": false,
     "port": 389,
     "host": "0.0.0.0",
     "rootDN": "ou=users, o=plex.tv",
     "plexToken": "",
     "plexMachineID": "",
-    "plexServerName": ""
+    "plexServerName": "",
+    "logLevel": "info"
 }

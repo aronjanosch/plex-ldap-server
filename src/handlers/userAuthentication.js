@@ -88,14 +88,14 @@ async function loadUsersIfNeeded() {
 async function findEntryByDn(dn, filter, scope) {
     const entries = await loadUsersIfNeeded();
     log(`Finding entries under base DN: ${dn}`, 'info');
-
+    log(`Filter: ${filter.toString()}`, 'info');
+    log(`Scope: ${scope}`, 'info');
     // Normalize the input DN
     const normalizedDn = dn.replace(/\s*,\s*/g, ',').toLowerCase();
 
     const matchedEntries = entries.filter((entry) => {
         // Normalize the entry DN for comparison
         const normalizedEntryDn = entry.dn.replace(/\s*,\s*/g, ',').toLowerCase();
-
         let dnMatch;
         switch (scope) {
             case 'base':
