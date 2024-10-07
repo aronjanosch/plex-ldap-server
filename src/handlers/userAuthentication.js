@@ -99,6 +99,8 @@ async function findEntryByDn(dn, filter, scope) {
         let dnMatch;
         switch (scope) {
             case 'base':
+            case 0:
+                log(`Comparing DNs: ${normalizedEntryDn} === ${normalizedDn}`, 'debug');
                 dnMatch = normalizedEntryDn === normalizedDn;
                 break;
             case 'one':
